@@ -169,8 +169,17 @@ export function joinLines(doc: Doc, sels: Sel[]): Edit {
   const selections: Sel[] = [];
   let delta = 0;
   const lastLine = doc.lines.length - 1;
+  // A caret joins its line with the next one, so widen first and merge afterwards:
+  // neighbouring carets must end up in one range, not in overlapping changes.
+  const ranges: { start: number; end: number }[] = [];
   for (const b of blocksOf(doc, sels)) {
-    const end = b.start === b.end ? b.start + 1 : b.end;
+    const r = { start: b.start, end: b.start === b.end ? b.start + 1 : b.end };
+    const prev = ranges[ranges.length - 1];
+    if (prev && r.start <= prev.end) prev.end = Math.max(prev.end, r.end);
+    else ranges.push(r);
+  }
+  for (const b of ranges) {
+    const end = b.end;
     if (end > lastLine) continue;
     let acc = doc.lines[b.start];
     let caret = -1;

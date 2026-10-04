@@ -101,6 +101,13 @@ test('join a selection, skipping empty lines, and do nothing on the last line', 
   assert.equal(last.changes, undefined);
 });
 
+test('join with carets on consecutive lines makes one join, not overlapping edits', () => {
+  const r = run('a\nb\nc\nd', [caret(0), caret(2)], joinLines);
+  assert.equal(r.text, 'a b c\nd');
+  assert.equal(r.sels.length, 1);
+  assert.equal(run('a\nb\nc\nd', [caret(0), caret(4)], joinLines).text, 'a b\nc d');
+});
+
 test('join does not double a trailing space', () => {
   assert.equal(run('a \nb', [caret(0)], joinLines).text, 'a b');
 });
