@@ -13,6 +13,7 @@ import {
   Sel,
   selectLines,
 } from './src/logic.ts';
+import { addCursors, keepMain, pickMain, selectAll, selectNext, Selections, skipOccurrence } from './src/cursors.ts';
 
 type Command = (doc: Doc, sels: Sel[]) => Edit;
 
@@ -74,6 +75,41 @@ function applyToText(text: string, edit: Edit): string {
   return out + text.slice(at);
 }
 
+type CursorCommand = (text: string, sels: Sel[], main: number) => Selections | null;
+
+const CURSOR_SPECS: { id: string; name: string; icon: string; run: CursorCommand }[] = [
+  { id: 'select-next', name: 'Select word or next occurrence', icon: 'text-cursor-input', run: selectNext },
+  { id: 'select-all-occurrences', name: 'Select all occurrences', icon: 'list-checks', run: selectAll },
+  { id: 'skip-occurrence', name: 'Skip this occurrence and select the next', icon: 'skip-forward', run: skipOccurrence },
+  { id: 'cursor-above', name: 'Add cursor above', icon: 'arrow-up-from-line', run: (t, s, m) => addCursors(t, s, m, 'above') },
+  { id: 'cursor-below', name: 'Add cursor below', icon: 'arrow-down-from-line', run: (t, s, m) => addCursors(t, s, m, 'below') },
+  { id: 'keep-main-cursor', name: 'Keep only the main cursor', icon: 'locate-fixed', run: (_t, s, m) => keepMain(s, m) },
+];
+
+/**
+ * Obsidian's `setSelections` ignores its `main` argument (the first range is always the main
+ * one), so the selection a command made "current" is remembered here per editor and matched
+ * against the live selections on the next command. If the user changed them, it just won't match.
+ */
+const lastMain = new WeakMap<Editor, Sel>();
+
+/** Selection-only commands: no text changes, so there is nothing to undo. */
+function runCursorCommand(editor: Editor, run: CursorCommand): void {
+  const sels = selections(editor);
+  const remembered = lastMain.get(editor);
+  const known = remembered ? sels.findIndex((s) => s.anchor === remembered.anchor && s.head === remembered.head) : -1;
+  const main = known >= 0 ? known : pickMain(sels, editor.posToOffset(editor.getCursor('head')));
+  const result = run(editor.getValue(), sels, main);
+  if (!result) return;
+  editor.setSelections(
+    result.sels.map((s) => ({ anchor: editor.offsetToPos(s.anchor), head: editor.offsetToPos(s.head) })),
+    result.main,
+  );
+  const m = result.sels[result.main];
+  lastMain.set(editor, m);
+  editor.scrollIntoView({ from: editor.offsetToPos(Math.min(m.anchor, m.head)), to: editor.offsetToPos(Math.max(m.anchor, m.head)) }, true);
+}
+
 class GoToLineModal extends Modal {
   constructor(app: App, private readonly editor: Editor) {
     super(app);
@@ -126,6 +162,14 @@ export default class LineEditingCommandsPlugin extends Plugin {
           if (edit.changes.length === 0 && edit.selections.length === 0) return;
           apply(editor, edit);
         },
+      });
+    }
+    for (const spec of CURSOR_SPECS) {
+      this.addCommand({
+        id: spec.id,
+        name: spec.name,
+        icon: spec.icon,
+        editorCallback: (editor) => runCursorCommand(editor, spec.run),
       });
     }
     this.addCommand({
