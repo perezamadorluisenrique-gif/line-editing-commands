@@ -1,6 +1,6 @@
 {
   "name": "line-editing-commands",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Line Editing Commands for Obsidian - Duplicate, join, sort, reverse and clean up lines, insert blank lines and jump to a line number, with multi-cursor support.",
   "main": "main.js",
   "scripts": {

@@ -4,7 +4,7 @@ The release workflow uses the section named after the version being released
 as the release description, so every version needs one. `npm version <x.y.z>`
 renames the `Unreleased` heading below to that version.
 
-## Unreleased
+## 0.2.0
 
 - Multiple cursors the way code editors do them: select word or next occurrence, select all occurrences, skip an occurrence, add cursor above or below, and keep only the main cursor. They only move selections and never change your note.
 
