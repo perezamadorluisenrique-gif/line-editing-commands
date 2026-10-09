@@ -1,8 +1,8 @@
 # Line Editing Commands
 
-Line-level editing commands for Obsidian's editor: duplicate, join, sort, reverse, insert blank lines, select a line, delete to the start or end of a line, and jump to a line number. Every command works with several cursors at once, and a single **Undo** reverts it.
+Line-level editing commands for Obsidian's editor: duplicate, join, sort, reverse, insert blank lines, select a line, delete to the start or end of a line, jump to a line number, and build multiple cursors the way code editors do (select next occurrence, select all, skip, add cursor above or below). Every command works with several cursors at once, and a single **Undo** reverts it.
 
-Obsidian already has commands to swap a line up or down, add a cursor above or below, delete a paragraph and toggle lists, so this plugin only adds what is missing.
+Obsidian already has commands to swap a line up or down, delete a paragraph and toggle lists, so this plugin only adds what is missing.
 
 ## Commands
 
@@ -16,7 +16,14 @@ Obsidian already has commands to swap a line up or down, add a cursor above or b
 | Reverse selected lines | Reverses the order of the selected lines. |
 | Remove duplicate lines in selection | Keeps the first of each repeated line. |
 | Delete to line start / end | Deletes from the cursor to the start or end of its line. It works from the cursor position (the end of a selection that was dragged), so a selection itself is not deleted. |
+| Select word or next occurrence | With no selection, selects the word at each cursor. With a selection, adds the next place with the same text (case-sensitive, wrapping around the note) as a new selection and scrolls to it. Repeat to keep adding. |
+| Select all occurrences | Selects every occurrence of the selected text, or of the word at the cursor. |
+| Skip this occurrence and select the next | Swaps the selection you added last for the next occurrence. |
+| Add cursor above / below | Adds a cursor on the line above or below each cursor, at the same column (or at the end of a shorter line). |
+| Keep only the main cursor | Drops every other cursor and selection. |
 | Go to line number | Opens a small window. Type `42` or `42:7` (line and column). A number past the end goes to the last line. |
+
+The cursor commands only move selections; they never change the note. Letters of any script count as word characters, as do digits and `_`.
 
 Sort, reverse and remove-duplicates need a selection that spans more than one line; they never touch a single line. A selection that ends at the very start of a line does not include that line. Where several cursors share a line, that line is edited once.
 
@@ -28,6 +35,11 @@ There are no default hotkeys, so nothing clashes with your own. Assign them in *
 | Join lines | `Ctrl+J` |
 | Select line | `Ctrl+L` |
 | Go to line number | `Ctrl+G` |
+| Select word or next occurrence | `Ctrl+D` |
+| Select all occurrences | `Ctrl+Shift+L` |
+| Skip this occurrence and select the next | `Ctrl+Alt+D` |
+| Add cursor above / below | `Ctrl+Alt+Up` / `Ctrl+Alt+Down` |
+| Keep only the main cursor | `Ctrl+Alt+Shift+M` |
 
 ## Notes
 
