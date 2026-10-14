@@ -152,3 +152,19 @@ test('parseLineTarget', () => {
   assert.equal(parseLineTarget('abc', 40), null);
   assert.equal(parseLineTarget('', 40), null);
 });
+
+test('join lines with carets on the last two lines joins the one above', () => {
+  const doc = new Doc('a\nb\nc');
+  const edit = joinLines(doc, [{ anchor: 2, head: 2 }, { anchor: 4, head: 4 }]);
+  assert.deepEqual(edit.changes, [{ from: 2, to: 5, insert: 'b c' }]);
+  assert.deepEqual(edit.selections, [{ anchor: 3, head: 3 }]);
+});
+
+test('reversing a block that ends up ending in an empty line can be reversed back', () => {
+  const once = run('\nb\na\nz', [{ anchor: 0, head: 4 }], (d, s) => rewriteLines(d, s, 'reverse'));
+  assert.equal(once.text, 'a\nb\n\nz');
+  // The selection takes the line break after the empty line, so it still
+  // covers three lines and not two.
+  assert.deepEqual(once.sels, [{ anchor: 0, head: 5 }]);
+  assert.equal(run(once.text, once.sels, (d, s) => rewriteLines(d, s, 'reverse')).text, '\nb\na\nz');
+});

@@ -179,8 +179,10 @@ export function joinLines(doc: Doc, sels: Sel[]): Edit {
     else ranges.push(r);
   }
   for (const b of ranges) {
-    const end = b.end;
-    if (end > lastLine) continue;
+    // A caret on the last line has no next line to join; one above it still
+    // joins its own line, so the range is cut short rather than dropped.
+    const end = Math.min(b.end, lastLine);
+    if (end <= b.start) continue;
     let acc = doc.lines[b.start];
     let caret = -1;
     for (let i = b.start + 1; i <= end; i++) {
@@ -230,7 +232,11 @@ export function rewriteLines(doc: Doc, sels: Sel[], how: LineTransform): Edit {
     const to = doc.lineEnd(b.end);
     const insert = transformLines(doc.lines.slice(b.start, b.end + 1), how).join('\n');
     if (insert !== doc.text.slice(from, to)) changes.push({ from, to, insert });
-    selections.push({ anchor: from + delta, head: from + delta + insert.length });
+    // A selection that ends at the start of a line leaves that line out, so
+    // when the block now ends in an empty line the selection takes the line
+    // break after it too, and running the command again works on the same lines.
+    const head = from + delta + insert.length + (insert.endsWith('\n') && b.end < doc.lines.length - 1 ? 1 : 0);
+    selections.push({ anchor: from + delta, head });
     delta += insert.length - (to - from);
   }
   return { changes, selections };
