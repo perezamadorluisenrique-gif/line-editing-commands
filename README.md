@@ -2,6 +2,8 @@
 
 Line-level editing commands for Obsidian's editor: duplicate, join, sort, reverse, insert blank lines, select a line, delete to the start or end of a line, jump to a line number, and build multiple cursors the way code editors do (select next occurrence, select all, skip, add cursor above or below). Every command works with several cursors at once, and a single **Undo** reverts it.
 
+![Sorting selected lines A to Z with Line Editing Commands](docs/screenshot.png)
+
 Obsidian already has commands to swap a line up or down, delete a paragraph and toggle lists, so this plugin only adds what is missing.
 
 ## Commands
